@@ -5,4 +5,6 @@
 </p>
 <p align="center">
   <img src="https://github.com/ahmed-kamal2004/Aurora/blob/main/images.jpg?raw=true" height=200 width=500>
+  <img src="https://static.toiimg.com/thumb/msid-96286166,width-748,height-499,resizemode=4,imgsize-129000/.jpg?raw=true" height=200 width=500>
+
 </p>
