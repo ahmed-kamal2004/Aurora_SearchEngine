@@ -8,3 +8,15 @@
   <img src="https://static.toiimg.com/thumb/msid-96286166,width-748,height-499,resizemode=4,imgsize-129000/.jpg?raw=true" height=200 width=500>
 
 </p>
+
+
+## Ranker
+#### PageRank Algorithm
+- Details :
+
+## Database "MongoDB"
+#### Inverted File
+- Details :
+#### Urls
+- Details :
+
