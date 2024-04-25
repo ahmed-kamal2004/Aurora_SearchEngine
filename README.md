@@ -9,10 +9,46 @@
 
 </p>
 
-
+## API "Spring Boot"
+ #### POST:
+ -
+ #### GET:
+ -
+ #### PUT:
+ -
+ #### DELETE:
+ -
+ 
 ## Ranker
 #### PageRank Algorithm
 - Details :
+  ```
+  PR(i) = (1 - d) + d * Σ(PR(j) / Outlinks(j))  where j points to i
+  ```
+  Where d is 0.15 "Approx".
+
+  This equation another view is
+
+  First I initialize M
+  ```
+  M = (1-d) A + dB
+  ```
+  
+  where :
+   d is dumping factor,
+   S is the number of URLs in the web,
+   B is Matrix of S*S filled with 1/S float number,
+   A is a transition matrix of size S*S that indicates the relations between every URL and other URLs outgoing from it.
+
+  Final Equation :bulb:
+  ```
+  X = M.T * X
+  ```
+  The number of Iterations is determined by the degree of precision required.
+  Precision criteria :
+  ```
+  | norm(X after multiplication operation) - norm(X before multiplication operation) |   should be < Precision Factor
+  ```
 
 ## Database "MongoDB"
 #### Inverted File
