@@ -13,7 +13,9 @@
  #### POST:
  -
  #### GET:
- -
+ - "http://localhost:8090/ranker/search"
+    ##### Request Body
+   > { "query": "here add your search!" } <br \>
  #### PUT:
  -
  #### DELETE:
