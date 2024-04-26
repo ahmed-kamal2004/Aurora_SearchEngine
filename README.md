@@ -11,11 +11,18 @@
 
 ## API "Spring Boot"
  #### POST:
- -
+ - "http://localhost:8090/ranker/calc" -- for calculating TD and IDF
+    ##### Response
+   > True or False "if there is an error" <br\>
+ - "http://localhost:8090/ranker/rank" -- for applying PageRank algorithm
+    ##### Response
+   > True or False "if there is an error" <br\>
  #### GET:
  - "http://localhost:8090/ranker/search"
     ##### Request Body
-   > { "query": "here add your search!" } <br \>
+   > { "query": "al-Khwarizmi" } <br \>
+    ##### Response
+   > Ranked Urls with appropriate information. <br\>
  #### PUT:
  -
  #### DELETE:
