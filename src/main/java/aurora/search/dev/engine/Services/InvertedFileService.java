@@ -35,12 +35,12 @@ public class InvertedFileService {
         Optional<InvertedFile> file = this.invertedFileRepository.findById(word);
         if(!file.isPresent()){
             // create the inverted file if not found
-            this.invertedFileRepository.save(new InvertedFile(word,new HashMap<String,Float>(0),new HashMap<String ,List<Long>>(0),0.0f,new HashSet<>(0)));
+            this.invertedFileRepository.save(new InvertedFile(word,new HashMap<String,Double>(0),new HashMap<String ,List<Long>>(0),0.0f,new HashSet<>(0)));
         }
         InvertedFile _file = this.invertedFileRepository.findById(word).get();
         if(!_file.getUrls().contains(url)){
             _file.getUrls().add(ll);
-            _file.getTfs().put( url,0.0f);
+            _file.getTfs().put( url, 0.0);
         }
         _file.getPlace().computeIfAbsent(url, k -> new ArrayList<Long>(0));
         _file.getPlace().get(url).add(place);
@@ -54,7 +54,7 @@ public class InvertedFileService {
         for(InvertedFile file : this.invertedFileRepository.findAll()){
             for(Url i : file.getUrls()){
                 long counter = (long) file.getPlace().get(i.getUrl()).size();
-                float Tf = (float) counter / i.getLength();
+                Double Tf = (double) ((float) counter / i.getLength());
                 file.getTfs().put(i.getUrl(),Tf); // saves automatic
             }
             this.invertedFileRepository.save(file);
@@ -62,12 +62,16 @@ public class InvertedFileService {
         return true;
     }
     public boolean CalculateIDF(){
-        // IDF : # of X /# of X where m appears
+        // IDF : log (# of X /# of X ) where m appears
         for(InvertedFile file : this.invertedFileRepository.findAll()){
-            file.setIdf((float) (this.urlRepository.findAll().size() / file.getUrls().size()));
+            file.setIdf((float) Math.log((float)this.urlRepository.findAll().size() / file.getUrls().size()));
             this.invertedFileRepository.save(file);
         }
         return true;
+    }
+
+    public Optional<InvertedFile> getInvertedFile(String word){
+        return this.invertedFileRepository.findById(word);
     }
 
 }

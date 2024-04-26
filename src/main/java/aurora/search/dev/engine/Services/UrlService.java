@@ -5,7 +5,6 @@ import aurora.search.dev.engine.Repositories.InvertedFileRepository;
 import aurora.search.dev.engine.Repositories.UrlRepository;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.jblas.DoubleMatrix;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 
@@ -26,6 +24,10 @@ public class UrlService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+
+    public Optional<Url> getUrlById(String url){
+        return this.urlRepository.findById(url);
+    }
 
     public Url create(String url,Long length){
         return this.urlRepository.insert(new Url(url,length));
