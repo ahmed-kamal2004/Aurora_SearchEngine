@@ -13,16 +13,16 @@
  #### POST:
  - "http://localhost:8090/ranker/calc" -- for calculating TD and IDF
     ##### Response
-   > True or False "if there is an error" <br\>
+   > True or False "if there is an error" <br/>
  - "http://localhost:8090/ranker/rank" -- for applying PageRank algorithm
     ##### Response
-   > True or False "if there is an error" <br\>
+   > True or False "if there is an error" <br/>
  #### GET:
  - "http://localhost:8090/ranker/search"
     ##### Request Body
-   > { "query": "al-Khwarizmi" } <br \>
+   > { "query": "al-Khwarizmi" } <br />
     ##### Response
-   > Ranked Urls with appropriate information. <br\>
+   > Ranked Urls with appropriate information. <br/>
  #### PUT:
  -
  #### DELETE:
