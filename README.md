@@ -35,17 +35,17 @@
   ```
   
   where :
-   d is dumping factor,
-   S is the number of URLs in the web,
-   B is Matrix of S*S filled with 1/S float number,
-   A is a transition matrix of size S*S that indicates the relations between every URL and other URLs outgoing from it.
+   > d is dumping factor, <br/>
+   > S is the number of URLs on the web,<br/>
+   > B is Matrix of S x S filled with 1/S float number,<br/>
+   > A is a transition matrix of size S x S that indicates the relations between every URL and other URLs outgoing from it.<br/>
 
   Final Equation :bulb:
   ```
   X = M.T * X
   ```
   The number of Iterations is determined by the degree of precision required.
-  Precision criteria :
+  Precision criteria: ⚡
   ```
   | norm(X after multiplication operation) - norm(X before multiplication operation) |   should be < Precision Factor
   ```
@@ -56,3 +56,8 @@
 #### Urls
 - Details :
 
+
+## How to Run 🚀?
+  #### Ranker & Search engine
+  #### Crawler
+  #### Indexer
