@@ -27,7 +27,7 @@ public class RankerController {
     private final double RELEVANCE_COFF = 1;
 
     // MAIN
-    @GetMapping("calc/")
+    @GetMapping("calc")
     public ResponseEntity<Boolean> calc() { // content relevance is done here.
         this.invertedFileService.CalculateTF();
         this.invertedFileService.CalculateIDF();
