@@ -1,7 +1,6 @@
 package aurora.search.dev.engine.Models;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,7 +16,7 @@ import java.util.Map;
 public class InvertedFile {
     @Id
     private String word;
-    private Map<String,Float> tfs;
+    private Map<String, Double> tfs;
     private Map<String,List<Long>> place;
     private Float idf;
     @DocumentReference
@@ -31,11 +30,11 @@ public class InvertedFile {
         this.word = word;
     }
 
-    public Map<String, Float> getTfs() {
+    public Map<String, Double> getTfs() {
         return tfs;
     }
 
-    public void setTfs(Map<String, Float> tfs) {
+    public void setTfs(Map<String, Double> tfs) {
         this.tfs = tfs;
     }
 
