@@ -6,6 +6,7 @@ public class Constants {
     public static final int NUM_OF_THREADS = 16;
     public static final int BATCH_SIZE = 10;
     public static final int PARAGRAPH_LENGTH = 200;
+    public static final int DESCRIPTION_LENGTH = 40;
 
     // Strings Constants
     public static final String CONN_STRING = "mongodb://localhost:27017";

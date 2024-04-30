@@ -27,7 +27,7 @@ public class MongoDB {
         wordsCollection = DBController.getCollection(Constants.WORDS_COLL_NAME);
         paragraphsCollection = DBController.getCollection(Constants.PARAGRAPHS_COLL_NAME);
         indexedUrlsCollection = DBController.getCollection(Constants.INDEXED_URLS_COLL_NAME);
-        System.out.println("SUCESSS");
+        System.out.println("Connected to DataBase ");
     }
 
     public boolean isUrlIndexed(String url) {
@@ -45,6 +45,14 @@ public class MongoDB {
 
             return paragraphsCollection.find((Bson) query).iterator().hasNext();
         }
+    }
+
+    public MongoCollection<Document> getWordsCollection(){
+        return wordsCollection;
+    }
+
+    public MongoCollection<Document> getIndexedUrlsCollection(){
+        return indexedUrlsCollection;
     }
 
     public Iterable<Document> getCrawlerCollection(int batchSize, int iteration) {
@@ -79,13 +87,10 @@ public class MongoDB {
             wordsCollection.insertOne(doc);
         }
     }
-    public void addIndexedUrl(Integer _id, String url, String title) {
+    public void addIndexedUrl(String url, Document urlDoc) {
         boolean pageExists = isUrlIndexed(url);
         if (!pageExists) {
-            Document doc = new Document("_id", _id)
-                    .append("url", url)
-                    .append("title", title);
-            indexedUrlsCollection.insertOne(doc);
+            indexedUrlsCollection.insertOne(urlDoc);
         }
     }
     public void addIndexedParagraph(String paragraph, Integer paragraphId) {

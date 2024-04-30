@@ -7,6 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,11 +75,10 @@ public class Indexer {
         UpdateWordsCollection uDB = new UpdateWordsCollection();
 
     }
-    public void updateUrlsCollection(String url){
-        Integer _id = indexedUrls.get(url).getInteger("_id");
-        String title = indexedUrls.get(url).getString("title");
-        DBController.addIndexedUrl(_id, url, title);
+    public void updateUrlsCollection(String url, Document urlDoc){
+        DBController.addIndexedUrl(url , urlDoc);
     }
+
 
     public void updateParagraphsCollection(String paragraph, Integer paragraphId) {
         DBController.addIndexedParagraph(paragraph, paragraphId);
@@ -113,15 +113,31 @@ public class Indexer {
         return tempAllWords;
     }
 
-    public void startIndexer(String body, String title, String url, Integer _id) throws InterruptedException {
+    public void startIndexer(String url, Integer _id) throws InterruptedException, IOException {
         if (DBController.isUrlIndexed(url)) {
             System.out.println("Page already indexed");
             return;
         }
         indexedWords = new ConcurrentHashMap<String, List<Document>>();
         indexedUrls = new HashMap<String, Document>();
-        org.jsoup.nodes.Document pageDoc = Jsoup.parse(body);
-        Elements allHtmlElements = pageDoc.getAllElements();
+        org.jsoup.nodes.Document pageDocument = Jsoup.connect(url).get();
+        String title = pageDocument.title();
+        Element metaDescription = pageDocument.select("meta[name=description]").first();
+        String description = "";
+        if (metaDescription != null) {
+            description = metaDescription.attr("content");
+        } else {
+            for (Element paragraph : pageDocument.select("p")) {
+                if (paragraph != null) {
+                    if (paragraph.text().length() >= Constants.DESCRIPTION_LENGTH){
+                        description = paragraph.text();
+                        break;
+                    }
+                }
+            }
+        }
+
+        Elements allHtmlElements = pageDocument.getAllElements();
         List<Document> allWords = new ArrayList<>();
         int wordIndex;
         String paragraph = "";
@@ -208,11 +224,12 @@ public class Indexer {
                 }
             }
         }
-        Document urlDoc = new Document("_id", _id)
+        Document urlDocument = new Document("_id", _id)
                 .append("url", url)
-                .append("title", title);
-        indexedUrls.put(url, urlDoc);
-        updateUrlsCollection(url);
+                .append("title", title)
+                .append("description", description);
+        indexedUrls.put(url, urlDocument);
+        updateUrlsCollection(url, urlDocument);
         updateWordsCollection();
     }
 
