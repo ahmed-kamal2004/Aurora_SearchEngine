@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.ConnectionString;
@@ -28,16 +30,20 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.DeleteResult;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import org.slf4j.LoggerFactory;
+//import ch.qos.logback.classic.Level;
+//import ch.qos.logback.classic.Logger;
+//import ch.qos.logback.classic.LoggerContext;
+//import org.slf4j.LoggerFactory;
+import java.security.MessageDigest;
+//import java.security.NoSuchAlgorithmException;
+
 
 public class Crawler {
     Set<String>excludedLinks =Collections.synchronizedSet( new HashSet<>());
     Queue<String>unCrawledLinks = new ConcurrentLinkedQueue<>();
     Set<String> crawledLinks = Collections.synchronizedSet( new HashSet<>());
     Set<String>robotChecked = Collections.synchronizedSet( new HashSet<>());
+    Set<String>compactStrings = Collections.synchronizedSet(new HashSet<>());
     ArrayList<String>seedset = new ArrayList<>();
     int Crawled=0;
     final String UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
@@ -53,7 +59,7 @@ public class Crawler {
                robotChecked.add(ready);
                Map<String, String> map = new HashMap<>();
                 map.put("url", ready);
-                addToDatabase("robotChecked", database, map);
+                addToDatabase("RobotChecked", database, map);
            }
 
             Connection.Response response = Jsoup.connect(ready)
@@ -90,7 +96,7 @@ public class Crawler {
                     excludeList.add(map);
                 }
             }
-                addManyToDatabase("excludedUrls", database, excludeList);
+                addManyToDatabase("ExcludedUrls", database, excludeList);
 
                  return;
             }
@@ -153,60 +159,83 @@ public class Crawler {
         synchronized(this.unCrawledLinks)
         {
             unCrawledLinks.add(normalizeURL(baseUrl));
-            deleteFromDatabase("seedset", database,normalizeURL(baseUrl));
+            deleteFromDatabase("Seedset", database,normalizeURL(baseUrl));
         }
         while(!unCrawledLinks.isEmpty()&&crawledLinks.size()<6000){
             String currentUrl;
             synchronized (this.unCrawledLinks) {
                 currentUrl = unCrawledLinks.poll();
-                deleteFromDatabase("uncrawledUrls", database, currentUrl);    
+                deleteFromDatabase("UncrawledUrls", database, currentUrl);    
             }
             try {
-                URL Url = new URL(currentUrl);
-                    Connection.Response response = Jsoup.connect(baseUrl)
+                currentUrl = normalizeURL(currentUrl);
+                    Connection.Response response = Jsoup.connect(currentUrl)
                     .userAgent(UserAgent)
                     .header("Accept-Language", "*")
                     .execute();
                     if (response.statusCode() > 399) {
                         continue;
                     }
-                    synchronized (this.crawledLinks) {
+                // Extract meaningful content from HTML (e.g., text from paragraphs
+                Document doc = response.parse();
+               // System.out.println(doc.text());
+                StringBuilder contentBuilder = new StringBuilder();
+                contentBuilder.append(doc.title());
+                ArrayList<Element> para = new ArrayList<Element>();
+                para = doc.body().getElementsByTag("p");
+                for (Element e:para){
+                    contentBuilder.append(e.text());
+                }
+                // System.out.println(content);
+                String compactString  = compactStringGenerator(contentBuilder.toString());
+                synchronized (this.crawledLinks) {
                         if(crawledLinks.size()<6000 &&!crawledLinks.contains(currentUrl))
-                        {  
+                        {
+                            if(compactStrings.contains(compactString)==true){
+                                System.out.println(currentUrl+"  has been crawled before");
+                            }
+                            else {
                             crawledLinks.add(currentUrl);
                             Map<String, String> map = new HashMap<>();
                             map.put("url", currentUrl);
-                            addToDatabase("crawledUrls", database,map);
+                            addToDatabase("CrawledUrls", database,map);
                             System.out.println("Crawling "+currentUrl + " \tCrawled Sites till now : "+ crawledLinks.size());
+                             }
                         }
                     }
-                    String contentType = response.headers().get("Content-Type");
-                    if (contentType == null) {
+                synchronized(this.compactStrings){
+                        compactStrings.add(compactString);
+                        Map<String, String> map = new HashMap<>();
+                        map.put("url", currentUrl);
+                        map.put("hash",compactString);
+                        addToDatabase("CompactStrings", database,map);
+                    }
+                String contentType = response.headers().get("Content-Type");
+                if (contentType == null) {
                         contentType = response.headers().get("content-type");
                     }
-                    if (!contentType.contains("text/html")) {
+                if (!contentType.contains("text/html")) {
                         System.out.println("Unsupported content type: " + contentType);
                         continue;
                     }
-                    exceptRobotLinks(currentUrl);
-                    Document doc = response.parse();
+                exceptRobotLinks(currentUrl);
                     ArrayList<Element> links = new ArrayList<Element>();
                     links = doc.getElementsByTag("a");
                     synchronized (this.unCrawledLinks){
                         ArrayList<Map<String,String>> uncrawled  = new ArrayList<>();
                         for (Element link : links) {
                             String s = normalizeURL(link.attr("href"));
-                            
                             if (s != null) {
                                 Map<String,String> map = new HashMap();
                                 if (!excludedLinks.contains(s) && !unCrawledLinks.contains(s) && !crawledLinks.contains(s)) {
                                     unCrawledLinks.add(s);
+
                                     map.put("url", s);
                                     uncrawled.add(map);
                                 }
                             }
                         }
-                        addManyToDatabase("uncrawledUrls", database, uncrawled);
+                        addManyToDatabase("UncrawledUrls", database, uncrawled);
                     }
                     
                 }
@@ -239,7 +268,7 @@ public class Crawler {
             @SuppressWarnings({ "unchecked", "finally" })
             public static ArrayList<String> getSeedSet(MongoDatabase database){
                 ArrayList<String>urls = new ArrayList<>();
-                MongoCollection collection = database.getCollection("seedset");
+                MongoCollection collection = database.getCollection("Seedset");
                 MongoCursor<org.bson.Document> cursor = collection.find().iterator();
                 try {
                     while (cursor.hasNext()) {
@@ -262,11 +291,12 @@ public class Crawler {
             }
             public void clearAllCollections(MongoDatabase database){
                 org.bson.Document doc = new org.bson.Document();
-                database.getCollection("crawledUrls").deleteMany(doc);
-                database.getCollection("excludedUrls").deleteMany(doc);
-                database.getCollection("robotChecked").deleteMany(doc);
-                database.getCollection("seedset").deleteMany(doc);
+                database.getCollection("CrawledUrls").deleteMany(doc);
+                database.getCollection("ExcludedUrls").deleteMany(doc);
+                database.getCollection("RobotChecked").deleteMany(doc);
+                database.getCollection("Seedset").deleteMany(doc);
                 database.getCollection("UncrawledUrls").deleteMany(doc);
+                database.getCollection("CompactStrings").deleteMany(doc);
                 this.crawledLinks.clear();
             }
             public static void addManyToDatabase(String collectionName, MongoDatabase database, List<Map<String, String>> documents) {
@@ -274,7 +304,7 @@ public class Crawler {
                 collection.insertMany(documents.stream().map(org.bson.Document::new).toList());
             }
             public static Queue<String> getUnCrawledLinks(MongoDatabase database,Queue<String> queue){
-                MongoCollection collection = database.getCollection("uncrawledUrls");
+                MongoCollection collection = database.getCollection("UncrawledUrls");
                 MongoCursor<org.bson.Document> cursor = collection.find().iterator();
                 try {
                     while (cursor.hasNext()) {
@@ -286,6 +316,31 @@ public class Crawler {
                     return queue;
                 }
             }
+            public static String compactStringGenerator(String input) {
+        try {
+            
+            // Create MD5 Hash instance
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            
+            // Update the message digest with the byte array of the input string
+            md.update(input.getBytes());
+            
+            // Get the hash bytes
+            byte[] hashBytes = md.digest();
+            
+            // Convert the byte array to a hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            
+            return sb.toString();
+        } 
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     public static void main(String[] args) throws FileNotFoundException {
         String connectionString = "mongodb+srv://newpro125:newPro125@projectdb.m3fenzd.mongodb.net/?retryWrites=true&w=majority&appName=projectDB";
         ConnectionString  connString = new ConnectionString(connectionString);
@@ -295,7 +350,7 @@ public class Crawler {
         Scanner cin = new Scanner(new File("/media/a7med/Local Disk/University/APT Project(CurrentWorking)/Aurora_SearchEngine/SeedList.txt"));
         Crawler crawler = new Crawler();
         System.out.println("--------------------Welcome to the Crawler--------------------------------");
-        crawler.crawledLinks = getFromDatabase(crawler.crawledLinks, database, "crawledUrls");
+        crawler.crawledLinks = getFromDatabase(crawler.crawledLinks, database, "CrawledUrls");
         String next=null;
         if(crawler.crawledLinks.size()>0){
             do{
@@ -304,24 +359,26 @@ public class Crawler {
         }while(!next.equalsIgnoreCase("Y")&&!next.equalsIgnoreCase("N"));
             if(next.equalsIgnoreCase("Y")){    
                 System.out.println("Please wait till Preparing The old data!");
-            crawler.excludedLinks = getFromDatabase(crawler.excludedLinks, database, "excludedUrls");
-            crawler.robotChecked = getFromDatabase(crawler.robotChecked, database, "robotChecked");
+            crawler.excludedLinks = getFromDatabase(crawler.excludedLinks, database, "ExcludedUrls");
+            crawler.robotChecked = getFromDatabase(crawler.robotChecked, database, "RobotChecked");
             crawler.seedset = getSeedSet(database);
             crawler.unCrawledLinks = getUnCrawledLinks(database,crawler.unCrawledLinks);
-           
+            crawler.compactStrings = getFromDatabase(crawler.compactStrings, database, "CompactStrings");
             }
         }
         
         if(next==null||next.equalsIgnoreCase("N")){
             System.out.println("Please Wait till clearing old state is done !");
             crawler.clearAllCollections(database);
+            ArrayList<Map<String,String>>maps = new ArrayList<>();
             while(cin.hasNext()){
                 Map<String,String> map = new HashMap<>();
                 String res = cin.next();
                 crawler.seedset.add(res);
                 map.put("url",res);
-                addToDatabase("seedset", database, map);
+               maps.add(map);
             }
+            addManyToDatabase("Seedset",database,maps);
         } 
         System.out.printf("Enter the number of Threads: ");
         int nThreads = cin2.nextInt();

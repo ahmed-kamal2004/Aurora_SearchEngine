@@ -18,6 +18,22 @@
 	</properties>
 	<dependencies>
 
+		<dependencies>
+    <!-- SLF4J API -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.32</version> <!-- or the latest version -->
+    </dependency>
+    
+    <!-- Logback implementation -->
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.2.3</version> <!-- or the latest version -->
+    </dependency>
+</dependencies>
+
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
