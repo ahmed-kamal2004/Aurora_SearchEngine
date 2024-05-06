@@ -3,7 +3,6 @@ package aurora.search.dev.engine.QueryEngine;
 import aurora.search.dev.engine.DataBase.MongoDB;
 import aurora.search.dev.engine.Helper.Constants;
 import ca.rmen.porterstemmer.PorterStemmer;
-import com.mongodb.client.MongoCollection;
 import edu.mit.jwi.Dictionary;
 import edu.mit.jwi.IDictionary;
 import edu.mit.jwi.item.*;
@@ -11,77 +10,51 @@ import org.bson.Document;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class QueryProcessor {
+    static boolean exact; /** for Phrase searching to get the exact word not meaning not stemmed **/
     private final PorterStemmer porterStemmer;
     private final MongoDB database;
-
     private final HashSet<String> StopWords;
-
-    String[] tokens;
     private final HashSet<Document> matchingDocs=new HashSet<>();
-    private final List<String> queryTerms = new ArrayList<>();
     private final List<String> queryTermsMeaning = new ArrayList<>();
+    List<String> queryTerms = new ArrayList<>();
+    HashMap<Integer, Double> Url_Score = new HashMap<>();
+    HashMap<Integer, Integer> Url_ParagraphID = new HashMap<>();
+    HashMap<Integer, String> Url_Paragraph = new HashMap<>();
+    HashSet<Integer> Url_FoundPar = new HashSet<>();
     HashSet<String>Searched=new HashSet<>();
-    List<String> QueryWords=new ArrayList<String>();
-    public QueryProcessor() {
-
+    List<String> tokens;
+    public QueryProcessor(boolean exactFlag) {
+        exact = exactFlag; // for Phrase searching to get the exact word not meaning not stemmed
         porterStemmer=new PorterStemmer();
         database=new MongoDB(Constants.DATABASE_NAME);
         StopWords=getStopWords();
     }
     private void preprocessQuery(String query) throws IOException {
         HashSet<String>Meanings;
-        tokens = query.toLowerCase().split("\\s+");
-        SetQueryWordsDB();
-        for (String token : tokens) {
-            if (!StopWords.contains(token) ) {
-                queryTerms.add(token);
-                Meanings = getMeaning(token);
-                queryTermsMeaning.addAll(Meanings);
-            }
+        tokens = List.of(query.toLowerCase().split("\\s+"));
+        queryTerms = SetQueryWordsDB(tokens);
+        for (String token : queryTerms) {
+            Meanings = getMeaning(token);
+            queryTermsMeaning.addAll(Meanings);
         }
     }
-    boolean findExactWord (String exactWord)
+    public List<String> SetQueryWordsDB(List<String> tokens)
     {
-        boolean found =false;
-        MongoCollection<Document> collection = database.getWordsCollection();
-
-        String stemmedWord = porterStemmer.stemWord(exactWord);
-        Document query1 = new Document("word", stemmedWord);
-        Document query2 = new Document("word", exactWord);
-
-        Document cursor =  collection.find(query1).first();
-        if(cursor == null) cursor = collection.find(query2).first();
-        if (cursor !=null) {
-            List<Document> pages = (List<Document>) cursor.get("pages");
-            for (Document page : pages) {
-                var originalWords = (List<?>) page.get("originalWords");
-                if (originalWords.contains(exactWord)) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        return found;
-    }
-
-    public void SetQueryWordsDB()
-    {
+        List<String> allWords = new ArrayList<>();
         for (String token:tokens)
         {
-            if (!StopWords.contains(token)&&findExactWord(token))
+            if (!StopWords.contains(token))
             {
-                QueryWords.add(token);
+                allWords.add(token);
             }
         }
+        return allWords;
     }
 
-    private void searchIndex(List<String> queryTerms) {
+    private void searchIndex(List<String> queryTerms, boolean originalWord) {
 
         for (String term : queryTerms) {
             String stemmedToken = porterStemmer.stemWord(term);
@@ -90,40 +63,50 @@ public class QueryProcessor {
                 Searched.add(stemmedToken);
                 for (Document doc : database.getWordsCollection().find(new Document("word", stemmedToken))) {
                     matchingDocs.add(doc);
+                    Double Idf = (Double) doc.get("IDF");
+                    if(!originalWord) Idf*=0.8; // to decrease the score of pages gotten by meanings
+                    for(Document page : (List<Document>) doc.get("pages")){
+                        Double TF = (Double) page.get("TF");
+                        Integer urlId = (Integer) page.get("urlId");
+
+                        if(Url_Score.containsKey(urlId)){
+                            Double lastScore = Url_Score.get(urlId);
+                            Url_Score.put(urlId, lastScore+Idf*TF);
+                        }
+                        else {
+                            Url_Score.put(urlId, Idf*TF);
+                        }
+
+                        /** FOR CORRESPONDING PARAGRAPHS **/
+                        List<String> originalWords = (List<String>) page.get("originalWords");
+                        int index = originalWords.indexOf(term);
+                        List<Integer> paragraphIndexes = (List<Integer>) page.get("paragraphIndexes");
+                        if(index!=-1&& originalWord){
+                            int idx = paragraphIndexes.get(index);
+                            Url_Paragraph.put(urlId, database.getParagraph(idx));
+                            Url_FoundPar.add(urlId);
+                            Url_ParagraphID.put(urlId, idx);
+                        }
+
+                        if(!Url_FoundPar.contains(urlId)){
+                            int idx = paragraphIndexes.get(0);
+                            Url_ParagraphID.put(urlId, idx);
+                            String description = database.getParagraph(idx);
+                            Url_Paragraph.put(urlId, description);
+                        }
+                    }
                 }
             }
         }
     }
     public HashSet<Document> processQuery(String query) throws IOException {
         preprocessQuery(query);
-        searchIndex(queryTerms);
-        searchIndex(queryTermsMeaning);
+        searchIndex(queryTerms, true);
+        if(!exact)
+            searchIndex(queryTermsMeaning, false);
         return matchingDocs;
     }
 
-    public HashSet<Integer> extractUrlsId( ){
-        HashSet<Integer> urlsID = new HashSet<>();
-        for (Document matchingDoc : matchingDocs) {
-            List<Document> pages = (List<Document>) matchingDoc.get("pages");
-            for (Document page : pages) {
-                urlsID.add(((Integer) page.get("urlId")));
-            }
-        }
-        return urlsID;
-    }
-    public void showOutputs(HashSet<Integer> urlsID ){
-        MongoCollection<Document> indexedUrlsCollection = database.getIndexedUrlsCollection();
-
-        for (Integer id : urlsID) {
-            Document query = new Document("_id", id);
-            Document doc = indexedUrlsCollection.find(query).first();
-            if (doc != null){
-                System.out.println("URL : " + doc.get("url") );
-                System.out.println("Title : " + doc.get("title") );
-                System.out.println("Description : " + doc.get("description") );
-            }
-        }
-    }
     public static HashSet<String>  getStopWords() {
         HashSet<String> stopWordsSet=new HashSet<String>();
         try {
@@ -159,14 +142,33 @@ public class QueryProcessor {
         return synonyms;
     }
 
-
-
-    public static void main(String[] args) throws IOException {
-        String testQuery = "reasons for football art learning";
-        QueryProcessor q=new QueryProcessor();
-        HashSet<Document> womenFootball = q.processQuery(testQuery);
-        womenFootball.forEach(x-> System.out.println(x.toString()));
-        HashSet<Integer> urlId = q.extractUrlsId();
-        q.showOutputs(urlId);
+    /** FOR TESTING **/
+    /*
+    public HashSet<Integer> extractUrlsId( ){
+        HashSet<Integer> urlsID = new HashSet<>();
+        for (Document matchingDoc : matchingDocs) {
+            List<Document> pages = (List<Document>) matchingDoc.get("pages");
+            for (Document page : pages) {
+                urlsID.add(((Integer) page.get("urlId")));
+            }
+        }
+        return urlsID;
     }
+
+    public void showOutputs(HashSet<Integer> urlsID ){
+        MongoCollection<Document> indexedUrlsCollection = database.getIndexedUrlsCollection();
+
+        for (Integer id : urlsID) {
+            Document query = new Document("_id", id);
+            Document doc = indexedUrlsCollection.find(query).first();
+            if (doc != null){
+                Logging.printColored(STR."URL : \{doc.get("url")}", Color.BLUE);
+                Logging.printColored(STR."Title: \{doc.get("title")}", Color.YELLOW);
+                Logging.printColored(STR."Description: \{doc.get("description")}", Color.YELLOW);
+            }
+        }
+    }
+   */
+
+
 }

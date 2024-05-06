@@ -46,22 +46,14 @@ public class MongoDB {
             return paragraphsCollection.find((Bson) query).iterator().hasNext();
         }
     }
-
-    public MongoCollection<Document> getWordsCollection(){
-        return wordsCollection;
-    }
-
-    public MongoCollection<Document> getIndexedUrlsCollection(){
-        return indexedUrlsCollection;
-    }
-
+    public MongoCollection<Document> getWordsCollection(){  return wordsCollection; }
+    public MongoCollection<Document> getIndexedUrlsCollection(){ return indexedUrlsCollection;}
     public Iterable<Document> getCrawlerCollection(int batchSize, int iteration) {
         List<Document> results = new ArrayList<>();
         FindIterable<Document> iterable = crawledUrlsCollection.find().skip(iteration * batchSize).limit(batchSize);
         iterable.into(results);
         return results;
     }
-
     public void addIndexedWord(String newWord, List<Document> newWordPages) {
         if (newWordPages == null) {
             return;
@@ -100,7 +92,6 @@ public class MongoDB {
                 Document paragraphDoc = new Document();
                 paragraphDoc.append("_id", paragraphId)
                         .append("paragraph", paragraph);
-
                 paragraphsCollection.insertOne(paragraphDoc);
             }
         }
@@ -114,4 +105,11 @@ public class MongoDB {
         return (int) indexedUrlsCollection.countDocuments();
     }
 
+    public String getParagraph(int id) {
+        Document doc = paragraphsCollection.find(new Document("_id", id)).first();
+        return (String) doc.get("paragraph");
+    }
+    public Document getUrlDocument(int urlId){
+        return indexedUrlsCollection.find(new Document("_id", urlId)).first();
+    }
 }
