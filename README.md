@@ -12,9 +12,6 @@
 
 ## API "Spring Boot"
  #### POST:
- - "http://localhost:8090/ranker/calc" -- for calculating TD and IDF
-    ##### Response
-   > True or False "if there is an error" <br/>
  - "http://localhost:8090/ranker/rank" -- for applying PageRank algorithm
     ##### Response
    > True or False "if there is an error" <br/>
