@@ -1,8 +1,7 @@
 package aurora.search.dev.engine.Services;
 
-import aurora.search.dev.engine.Models.Url;
-import aurora.search.dev.engine.Repositories.InvertedFileRepository;
-import aurora.search.dev.engine.Repositories.UrlRepository;
+import aurora.search.dev.engine.Models.IndexedUrls;
+import aurora.search.dev.engine.Repositories.IndexedUrlsRepository;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,31 +15,29 @@ import java.util.Optional;
 import static java.lang.Math.abs;
 
 @Service
-public class UrlService {
+public class IndexedUrlsService {
     @Autowired
-    private InvertedFileRepository invertedFileRepository;
-    @Autowired
-    private UrlRepository urlRepository;
+    private IndexedUrlsRepository urlRepository;
     @Autowired
     private MongoTemplate mongoTemplate;
 
 
-    public Optional<Url> getUrlById(String url){
-        return this.urlRepository.findById(url);
+    public IndexedUrls getUrl(String url){
+        return this.urlRepository.findByUrl(url);
     }
 
-    public Url create(String url,Long length){
-        return this.urlRepository.insert(new Url(url,length));
+    public IndexedUrls create(String url, Long length){
+        return this.urlRepository.insert(new IndexedUrls(url,length));
     }
-    public List<Url>getUrls(){
+    public List<IndexedUrls>getUrls(){
         return this.urlRepository.findAllByOrderByRankDesc();
     }
 
     public boolean connectUrls(String url1,String url2){
 
         // url2 points to url1
-        Url url1_obj = this.urlRepository.findById(url1).get();
-        Url url2_obj = this.urlRepository.findById(url2).get();
+        IndexedUrls url1_obj = this.urlRepository.findByUrl(url1);
+        IndexedUrls url2_obj = this.urlRepository.findByUrl(url2);
 
         url1_obj.getUrls_ingoing().add(url2_obj.getUrl());
         url2_obj.getUrls_outgoing().add(url1_obj.getUrl());
@@ -52,7 +49,7 @@ public class UrlService {
 
     public boolean rank(){
             // M = (1-d)A + dB
-            List<Url> urlList =  this.urlRepository.findAll();
+            List<IndexedUrls> urlList =  this.urlRepository.findAll();
             int size = urlList.size();
             RealMatrix A = new Array2DRowRealMatrix(size,size);
             RealMatrix B = new Array2DRowRealMatrix(size,size);
