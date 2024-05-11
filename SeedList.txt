@@ -1,8 +1,3 @@
-https://youm7.com
-https://elbalad.news
-https://masrawy.com
-https://almasryalyoum.com
-https://mbc.net
 https://www.cnn.com/
 https://www.bbc.com/news
 https://www.nytimes.com/
@@ -47,7 +42,6 @@ https://www.latimes.com/
 https://www.chicagotribune.com/
 https://www.smh.com.au/
 https://www.theglobeandmail.com/
-
 https://www.telegraph.co.uk/
 https://www.dailymail.co.uk/
 https://www.theguardian.com/au

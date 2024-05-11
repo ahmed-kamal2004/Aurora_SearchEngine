@@ -27,6 +27,6 @@ public class Constants {
     public static final String USERNAME = "newpro125";
     public static final String PASSWORD = "newPro125";
     public static final String DATABASE_CLUSTER_URL = "projectdb.m3fenzd.mongodb.net/";
-    public static final String SEED_LIST_PATH = "E:\\Programs\\java\\final\\Aurora_SearchEngine\\SeedList.txt";
+    public static final String SEED_LIST_PATH = "Aurora_SearchEngine\\SeedList.txt";
 
 }

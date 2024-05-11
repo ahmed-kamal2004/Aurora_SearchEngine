@@ -85,10 +85,10 @@ public class CrawlerController {
                     synchronized (this.excludedLinks) {
                         if (lines[i].startsWith("/")) {
                             excludedLinks.add(realUrl.getProtocol() + "://" + realUrl.getHost() + lines[i]);
-                            map.put("url", realUrl.getProtocol() + "://" + realUrl.getHost() + lines[i]);
+                            map.put(Constants.KEY, realUrl.getProtocol() + "://" + realUrl.getHost() + lines[i]);
                         } else {
                             excludedLinks.add(realUrl.getProtocol() + "://" + realUrl.getHost() + '/' + lines[i]);
-                            map.put("url", realUrl.getProtocol() + "://" + realUrl.getHost() + '/' + lines[i]);
+                            map.put(Constants.KEY, realUrl.getProtocol() + "://" + realUrl.getHost() + '/' + lines[i]);
                         }
                     }
                     excludeList.add(map);
@@ -96,7 +96,8 @@ public class CrawlerController {
             }
             addManyToDatabase(Constants.EXCLUDED_URLS_COL, database, excludeList);
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
+            //return null;
         }
 
     }
@@ -141,7 +142,7 @@ public class CrawlerController {
                 } else
                     i++;
             }
-            // decode the path
+            // // decode the path
             path = Path.toString();
             for (int i = 0; i < path.length(); i++) {
                 if (path.charAt(i) == '%') {
@@ -154,9 +155,9 @@ public class CrawlerController {
                     + ((searchQuery != "") ? "?" + searchQuery : "");
 
             return normalizedUrl;
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
 
-            e.printStackTrace();
+            // e.printStackTrace();
             return null;
         }
     }
@@ -191,10 +192,37 @@ public class CrawlerController {
                 Document doc = response.parse();
                 StringBuilder contentBuilder = new StringBuilder();
                 contentBuilder.append(doc.title());
+                ArrayList<String> crawl = new ArrayList<String>();
                 ArrayList<Element> pTags = new ArrayList<Element>();
+                ArrayList<Element> links = new ArrayList<Element>(); 
+                links = doc.getElementsByTag("a");
                 pTags = doc.body().getElementsByTag("p");
                 for (Element e : pTags) {
                     contentBuilder.append(e.text());
+                }
+                synchronized (this.unCrawledLinks) {
+                    // Add many once since multiple transcation cause slow in performance.
+                    ArrayList<Map<String, String>> uncrawled = new ArrayList<>();
+
+                    for (Element link : links) {
+
+                        String s = new URL(new URL(currentUrl),link.attr("href")).toString();
+                        //System.out.println(s);
+                        s = normalizeURL(s);
+
+                        if (s != null) {
+                            Map<String, String> map = new HashMap();
+                            crawl.add(s);
+                            if (!excludedLinks.contains(s) && !unCrawledLinks.contains(s)
+                                    && !crawledLinks.contains(s)) {
+                                unCrawledLinks.add(s);
+
+                                map.put(Constants.KEY, s);
+                                uncrawled.add(map);
+                            }
+                        }
+                    }
+                    addManyToDatabase(Constants.UNCRAWLED_URLS_COL, database, uncrawled);
                 }
                 // Generate the Compact String for the page content
                 String compactString = compactStringGenerator(contentBuilder.toString());
@@ -205,9 +233,10 @@ public class CrawlerController {
                             System.out.println(currentUrl + "  has been crawled before");
                         } else {
                             crawledLinks.add(currentUrl);
-                            Map<String, String> map = new HashMap<>();
+                            Map<String, Object> map = new HashMap<>();
                             map.put(Constants.KEY, currentUrl);
-                            addToDatabase(Constants.CRAWLER_URLS_COLL_NAME, database, map);
+                            map.put("OUTGOINGURLS",crawl);
+                            addToCrawledURLS(database, map);
                             System.out.println(
                                     "Crawling " + currentUrl + " \tCrawled Sites till now : " + crawledLinks.size());
                         }
@@ -218,7 +247,7 @@ public class CrawlerController {
                     compactStrings.add(compactString);
                     Map<String, String> map = new HashMap<>();
                     map.put(Constants.KEY, currentUrl);
-                    map.put("hash", compactString);
+                    map.put("HASH", compactString);
                     addToDatabase(Constants.COMPACT_STRING_COL, database, map);
                 }
                 String contentType = response.headers().get("Content-Type");
@@ -232,34 +261,9 @@ public class CrawlerController {
                 // get The excluded the paths inside the domain
                 exceptRobotLinks(currentUrl);
 
-                ArrayList<Element> links = new ArrayList<Element>();
-
-                links = doc.getElementsByTag("a");
-
-                synchronized (this.unCrawledLinks) {
-                    // Add many once since multiple transcation cause slow in performance.
-                    ArrayList<Map<String, String>> uncrawled = new ArrayList<>();
-
-                    for (Element link : links) {
-
-                        String s = normalizeURL(link.attr("href"));
-
-                        if (s != null) {
-                            Map<String, String> map = new HashMap();
-                            if (!excludedLinks.contains(s) && !unCrawledLinks.contains(s)
-                                    && !crawledLinks.contains(s)) {
-                                unCrawledLinks.add(s);
-
-                                map.put("url", s);
-                                uncrawled.add(map);
-                            }
-                        }
-                    }
-                    addManyToDatabase(Constants.UNCRAWLED_URLS_COL, database, uncrawled);
-                }
 
             } catch (Exception e) {
-                e.printStackTrace();
+                // e.printStackTrace();
                 continue;
             }
 
@@ -285,13 +289,28 @@ public class CrawlerController {
                 result.add(document.get(Constants.KEY).toString());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         } finally {
             cursor.close();
             return result;
         }
     }
-
+    // public static Set<String> getFromDatabaseCrawledUrls()
+    // {
+    //     MongoCollection<org.bson.Document> collection = database.getCollection(collectionName);
+    //     MongoCursor<org.bson.Document> cursor = collection.find().iterator();
+    //     try {
+    //         while (cursor.hasNext()) {
+    //             org.bson.Document document = cursor.next();
+    //             result.add(document.get(Constants.KEY).toString());
+    //         }
+    //     } catch (Exception e) {
+    //         // e.printStackTrace();
+    //     } finally {
+    //         cursor.close();
+    //         return result;
+    //     }
+    // }
     @SuppressWarnings({ "unchecked", "finally" })
     public static ArrayList<String> getSeedSet(MongoDatabase database) {
         ArrayList<String> urls = new ArrayList<>();
@@ -300,10 +319,10 @@ public class CrawlerController {
         try {
             while (cursor.hasNext()) {
                 org.bson.Document document = cursor.next();
-                urls.add(document.get("url").toString());
+                urls.add(document.get(Constants.KEY).toString());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         } finally {
             cursor.close();
             return urls;
@@ -314,7 +333,10 @@ public class CrawlerController {
         MongoCollection<org.bson.Document> collection = database.getCollection(collectionName);
         collection.insertOne(new org.bson.Document(Document));
     }
-
+    public static void addToCrawledURLS(MongoDatabase database,Map<String,Object>Document){
+        MongoCollection<org.bson.Document> collection = database.getCollection("CrawledUrls");
+        collection.insertOne(new org.bson.Document(Document));
+    }
     public static void deleteFromDatabase(String collectionName, MongoDatabase database, String Document) {
         MongoCollection<org.bson.Document> collection = database.getCollection(collectionName);
         DeleteResult deleteResult = collection.deleteOne(new org.bson.Document(Constants.KEY, Document));
@@ -343,7 +365,7 @@ public class CrawlerController {
         try {
             while (cursor.hasNext()) {
                 org.bson.Document document = cursor.next();
-                queue.add(document.get("url").toString());
+                queue.add(document.get(Constants.KEY).toString());
             }
         } finally {
             cursor.close();
@@ -373,19 +395,21 @@ public class CrawlerController {
 
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             return null;
         }
     }
 
     public static void main(String[] args) throws FileNotFoundException {
         // initialize the Database Connection
-//        String connectionString = String.format("mongodb://localhost:27017/",Constants.DATA_BASE);
-//
-////                Constants.USERNAME, Constants.PASSWORD, Constants.DATABASE_CLUSTER_URL, Constants.DATA_BASE);
-//        ConnectionString connString = new ConnectionString(connectionString);
+        // String connectionString =
+        // String.format("mongodb://localhost:27017/",Constants.DATA_BASE);
+        //
+        //// Constants.USERNAME, Constants.PASSWORD, Constants.DATABASE_CLUSTER_URL,
+        // Constants.DATA_BASE);
+        // ConnectionString connString = new ConnectionString(connectionString);
         ConnectionString connectionString = new ConnectionString(Constants.CONN_STRING);
-//        MongoClient client = MongoClients.create(connectionString);
+        // MongoClient client = MongoClients.create(connectionString);
         MongoClient mongoClient = MongoClients.create(connectionString);
 
         database = mongoClient.getDatabase(Constants.DATABASE_NAME);
@@ -420,7 +444,7 @@ public class CrawlerController {
                 Map<String, String> map = new HashMap<>();
                 String res = cin.next();
                 crawler.seedset.add(res);
-                map.put("url", res);
+                map.put(Constants.KEY, res);
                 maps.add(map);
             }
             addManyToDatabase(Constants.SEED_SET_COL, database, maps);
@@ -437,7 +461,7 @@ public class CrawlerController {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
             }
         }
         System.out.println("Crawling Process Finished...");
