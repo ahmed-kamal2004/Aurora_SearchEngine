@@ -22,11 +22,11 @@ public class Constants {
     public static final String ROBOT_CHECKED_COL = "RobotChecked";
     public static final String COMPACT_STRING_COL = "CompactStrings";
     public static final String EXCLUDED_URLS_COL = "ExcludedUrls";
-    public static final String KEY = "url";
-    public static final String DATA_BASE = "projectDB";
+    public static final String KEY = "URL";
+    public static final String DATA_BASE = "test";
     public static final String USERNAME = "newpro125";
     public static final String PASSWORD = "newPro125";
     public static final String DATABASE_CLUSTER_URL = "projectdb.m3fenzd.mongodb.net/";
-    public static final String SEED_LIST_PATH = "/media/a7med/Local Disk/University/APT Project(CurrentWorking)/Aurora_SearchEngine/SeedList.txt";
+    public static final String SEED_LIST_PATH = "E:\\Programs\\java\\final\\Aurora_SearchEngine\\SeedList.txt";
 
 }

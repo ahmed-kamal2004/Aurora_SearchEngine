@@ -25,6 +25,8 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -378,13 +380,15 @@ public class CrawlerController {
 
     public static void main(String[] args) throws FileNotFoundException {
         // initialize the Database Connection
-        String connectionString = String.format("mongodb+srv://%s:%s@%s?retryWrites=true&w=majority&appName=%s",
-                Constants.USERNAME, Constants.PASSWORD, Constants.DATABASE_CLUSTER_URL, Constants.DATA_BASE);
-        ConnectionString connString = new ConnectionString(connectionString);
+//        String connectionString = String.format("mongodb://localhost:27017/",Constants.DATA_BASE);
+//
+////                Constants.USERNAME, Constants.PASSWORD, Constants.DATABASE_CLUSTER_URL, Constants.DATA_BASE);
+//        ConnectionString connString = new ConnectionString(connectionString);
+        ConnectionString connectionString = new ConnectionString(Constants.CONN_STRING);
+//        MongoClient client = MongoClients.create(connectionString);
+        MongoClient mongoClient = MongoClients.create(connectionString);
 
-        MongoClient mongoClient = MongoClients.create(connString);
-
-        database = mongoClient.getDatabase(Constants.DATA_BASE);
+        database = mongoClient.getDatabase(Constants.DATABASE_NAME);
 
         Scanner cin2 = new Scanner(System.in);
         Scanner cin = new Scanner(new File(Constants.SEED_LIST_PATH));

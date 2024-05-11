@@ -10,4 +10,6 @@ import java.util.List;
 public interface IndexedUrlsRepository extends MongoRepository<IndexedUrls,String> {
     public List<IndexedUrls> findAllByOrderByRankDesc();
     public IndexedUrls findByUrl(String url);
+
+    public List<IndexedUrls> findAll();
 }

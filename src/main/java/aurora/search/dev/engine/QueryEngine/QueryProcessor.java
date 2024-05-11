@@ -125,7 +125,8 @@ public class QueryProcessor {
     }
     public static HashSet<String> getMeaning(String word) throws IOException {
         HashSet<String> synonyms = new HashSet<String >();
-        String path = "C:\\dict";
+//        String path = "C:\\dict";
+        String path = "dict";
         IDictionary dict = new Dictionary(new File(path));
         dict.open();
         IIndexWord idxWord = dict.getIndexWord(word, POS.NOUN);

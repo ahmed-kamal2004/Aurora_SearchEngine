@@ -10,47 +10,47 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import static java.lang.Math.abs;
 
 @Service
 public class IndexedUrlsService {
     @Autowired
-    private IndexedUrlsRepository urlRepository;
+    private IndexedUrlsRepository indexedUrlsRepository;
     @Autowired
     private MongoTemplate mongoTemplate;
 
 
     public IndexedUrls getUrl(String url){
-        return this.urlRepository.findByUrl(url);
+        return this.indexedUrlsRepository.findByUrl(url);
     }
 
     public IndexedUrls create(String url, Long length){
-        return this.urlRepository.insert(new IndexedUrls(url,length));
+        return this.indexedUrlsRepository.insert(new IndexedUrls(url,length));
     }
     public List<IndexedUrls>getUrls(){
-        return this.urlRepository.findAllByOrderByRankDesc();
+        return this.indexedUrlsRepository.findAllByOrderByRankDesc();
     }
 
     public boolean connectUrls(String url1,String url2){
 
         // url2 points to url1
-        IndexedUrls url1_obj = this.urlRepository.findByUrl(url1);
-        IndexedUrls url2_obj = this.urlRepository.findByUrl(url2);
+        IndexedUrls url1_obj = this.indexedUrlsRepository.findByUrl(url1);
+        IndexedUrls url2_obj = this.indexedUrlsRepository.findByUrl(url2);
 
-        url1_obj.getUrls_ingoing().add(url2_obj.getUrl());
         url2_obj.getUrls_outgoing().add(url1_obj.getUrl());
 
-        this.urlRepository.save(url1_obj);
-        this.urlRepository.save(url2_obj);
+        this.indexedUrlsRepository.save(url1_obj);
+        this.indexedUrlsRepository.save(url2_obj);
         return true;
     }
 
     public boolean rank(){
             // M = (1-d)A + dB
-            List<IndexedUrls> urlList =  this.urlRepository.findAll();
+            List<IndexedUrls> urlList =  this.indexedUrlsRepository.findAll();
+            System.out.println(urlList.toString());
             int size = urlList.size();
+            System.out.println(size);
             RealMatrix A = new Array2DRowRealMatrix(size,size);
             RealMatrix B = new Array2DRowRealMatrix(size,size);
             RealMatrix X = new Array2DRowRealMatrix(size,1);
@@ -67,8 +67,8 @@ public class IndexedUrlsService {
             for(int i = 0;i<size;i++){
                 HashSet<String> outGoing = urlList.get(i).getUrls_outgoing();
                 int prob_inverse = outGoing.size();
-//                double prob = prob_inverse == 0 ? (float)1/size : (float) 1 /prob_inverse;
-                double prob = (float) 1 /prob_inverse;
+                double prob = prob_inverse == 0 ? (float)1/size : (float) 1 /prob_inverse;
+//                double prob = (float) 1 /prob_inverse;
                 System.out.println(prob);
                 for(int j =0;j<size;j++){
                     if(outGoing.contains(urlList.get(j).getUrl())){
@@ -92,7 +92,7 @@ public class IndexedUrlsService {
             System.out.println("3");
             for(int i =0;i<size;i++){
                 urlList.get(i).setRank(X.getEntry(i,0));
-                this.urlRepository.save(urlList.get(i));
+                this.indexedUrlsRepository.save(urlList.get(i));
             }
 
         return true;
