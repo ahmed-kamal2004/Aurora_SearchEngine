@@ -12,7 +12,7 @@ import ca.rmen.porterstemmer.PorterStemmer;
 public class PreIndexer {
     public  List<String> ReadFile()  {
         List<String> StopWords = new ArrayList<>();
-        File file = new File("StopWords.txt").getAbsoluteFile();
+        File file = new File("Aurora_SearchEngine\\StopWords.txt").getAbsoluteFile();
         try {
             Scanner scanner = new Scanner(file);
             while (scanner.hasNextLine()) {

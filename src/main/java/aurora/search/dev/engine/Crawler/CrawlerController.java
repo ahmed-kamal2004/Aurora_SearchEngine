@@ -212,10 +212,12 @@ public class CrawlerController {
 
                         if (s != null) {
                             Map<String, String> map = new HashMap();
-                            crawl.add(s);
                             if (!excludedLinks.contains(s) && !unCrawledLinks.contains(s)
-                                    && !crawledLinks.contains(s)) {
+                            && !crawledLinks.contains(s)) {
+                                {
+                                    crawl.add(s);
                                 unCrawledLinks.add(s);
+                            }
 
                                 map.put(Constants.KEY, s);
                                 uncrawled.add(map);

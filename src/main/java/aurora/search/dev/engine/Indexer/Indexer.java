@@ -120,7 +120,9 @@ public class Indexer {
         }
         indexedWords = new ConcurrentHashMap<String, List<Document>>();
         indexedUrls = new HashMap<String, Document>();
-        org.jsoup.nodes.Document pageDocument = Jsoup.connect(url).get();
+        org.jsoup.nodes.Document pageDocument = Jsoup.connect(url).userAgent(Constants.USER_AGENT)
+        .header("Accept-Language", "*")
+        .execute().parse(); // edited by new_pro125 to avoid 404 error
         String title = pageDocument.title();
         Element metaDescription = pageDocument.select("meta[name=description]").first();
         String description = "";
