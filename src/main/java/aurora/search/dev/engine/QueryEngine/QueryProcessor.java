@@ -46,7 +46,7 @@ public class QueryProcessor {
         List<String> allWords = new ArrayList<>();
         for (String token:tokens)
         {
-            if (!StopWords.contains(token))
+            if (!StopWords.contains(token)&&!token.isEmpty())
             {
                 allWords.add(token);
             }

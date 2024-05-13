@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+    --color-1: chartreuse;
+    --color-2: magenta;
+    --color-3: cyan;
+    --color-4:#f00 ;
+  
+    --aura-size: 200%;
+    --aura-speed: 15s;
+  
+    --aura-1: var(--color-1);
+    --aura-2: var(--color-2);
+    --aura-3: var(--color-3);
+    --aura-4: var(--color-4);
+  }
+  
+  body {
+    background: #c5c50a;
+    text-align: start;
+    /* text-shadow: 0 0 1ch var(--color-3), 0 0 4ch var(--color-2); */
+    animation: aura var(--aura-speed) linear infinite;
+    background-size: var(--aura-size) var(--aura-size);
+    background-image: radial-gradient(transparent 0, transparent 20%),
+      radial-gradient(at 62% 9%, var(--aura-1) 0px, transparent 50%),
+      radial-gradient(at 69% 60%, var(--aura-2) 0px, transparent 50%),
+      radial-gradient(at 24% 89%, var(--aura-3) 0px, transparent 50%),
+      radial-gradient(at 51% 77%, var(--aura-4) 0px, transparent 50%),
+      radial-gradient(at 78% 92%, var(--aura-1) 0px, transparent 50%);
+  }
+  
+  .wrapper {
+    padding: 5em;
+  }
+  h1 {
+    font-size: 10rem;
+    font-weight: lighter;
+    line-height: 1;
+    margin: 0;
+  }
+  
+  @keyframes aura {
+    0% {
+      background-position: center, 50% 50%, 30% 100%, 100% 10%, 23% 23%, 0% 80%;
+    }
+    33.333% {
+      background-position: center, 10% 75%, 40% 80%, 60% 20%, 43% 23%, 16% 30%;
+    }
+    66.666% {
+      background-position: center, 25% 35%, 80% 50%, 10% 10%, 66% 5%, 30% 0%;
+    }
+    100% {
+      background-position: center, 50% 50%, 30% 100%, 100% 10%, 23% 23%, 0% 80%;
+    }
+  }

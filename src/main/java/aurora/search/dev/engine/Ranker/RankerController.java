@@ -1,8 +1,9 @@
 package aurora.search.dev.engine.Ranker;
 
 
+import aurora.search.dev.engine.Models.CrawledUrls;
 import aurora.search.dev.engine.QueryEngine.QueryController;
-import aurora.search.dev.engine.Services.IndexedUrlsService;
+import aurora.search.dev.engine.Services.CrawledUrlsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.*;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping("ranker/")
 public class RankerController {
     public record Output(
@@ -22,7 +24,7 @@ public class RankerController {
     ){}
 
     @Autowired
-    private IndexedUrlsService urlService;
+    private CrawledUrlsService urlService;
 
     private final double TD_UPPER = 0.5; // Constant number
     private final double RANK_COFF = 1;
@@ -39,9 +41,10 @@ public class RankerController {
 
     //MAIN   /// UNDER TESTING
     @GetMapping("search")
-    public ResponseEntity<Map<Double, Output>> search(@RequestBody Map<String, String> payload) throws IOException {
-        try {
-            String query = payload.get("query");
+    //public ResponseEntity<Map<Double, Output>> search(@RequestBody Map<String, String> payload) throws IOException {
+//        try {
+    public ResponseEntity<Map<Double, Output>> search(@RequestParam("query") String payload) throws IOException {
+            String query = payload;
             QueryController q = new QueryController();
             List<QueryController.allNeeded> listOfRecords = q.getQueryResults(query);
             List<String>words = q.getQueryWords();
@@ -50,7 +53,12 @@ public class RankerController {
             Map<Double, Output>results = new  TreeMap<>(reverseComparator);
             for(QueryController.allNeeded item : listOfRecords){
                 Output newOutput = new Output(item.url(),item.title(),item.paragraph(),words);
-                Double keyValue = this.RANK_COFF*this.urlService.getUrl(item.url()).getRank() + this.RELEVANCE_COFF * item.Idf_TF();
+                System.out.println(item.url());
+                Optional<CrawledUrls> crawledUrls = Optional.ofNullable(this.urlService.getUrl(item.url()));
+                if(!crawledUrls.isPresent())
+                    continue;
+                CrawledUrls SearchedUrl = crawledUrls.get();
+                Double keyValue = this.RANK_COFF*SearchedUrl.getRank() + this.RELEVANCE_COFF * item.Idf_TF();
                 results.put(keyValue,newOutput);
             }
             for(Map.Entry<Double,Output>item : results.entrySet()){
@@ -58,8 +66,8 @@ public class RankerController {
                 System.out.println(item.getValue());
             }
             return new ResponseEntity<>(results,HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
     }
 }
