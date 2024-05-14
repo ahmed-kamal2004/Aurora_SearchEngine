@@ -1,4 +1,4 @@
-![image](https://github.com/ahmed-kamal2004/Aurora_SearchEngine/assets/98265644/02f14563-9759-4868-a87c-6a72545838e4)[![License](https://img.shields.io/github/license/get-icon/geticon)](https://github.com/get-icon/geticon/blob/master/LICENSE "License")
+[![License](https://img.shields.io/github/license/get-icon/geticon)](https://github.com/get-icon/geticon/blob/master/LICENSE "License")
 
 
 # Aurora
