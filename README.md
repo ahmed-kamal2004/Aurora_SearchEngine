@@ -105,7 +105,8 @@ The web interface provides user interaction with the search engine:
 
 
 
-### Contributors
+## Contributors
+
 
 ## LICENSE
 
