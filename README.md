@@ -1,6 +1,3 @@
-[![License](https://img.shields.io/github/license/get-icon/geticon)](https://github.com/get-icon/geticon/blob/master/LICENSE "License")
-
-
 # Aurora
 ### Intro
 <p align="center">
@@ -34,7 +31,7 @@
 - **Stemming:** Matching words with the same root (e.g., "travel" matches "traveler", "traveling").
 - **Phrase Searching:** Supporting phrase searches with quotation marks, ensuring precise order matching.
 
-### Ranker
+### Ranker 🚀
 The ranker sorts search results based on relevance and popularity:
 - **Relevance:** Calculated using methods like tf-idf, considering word occurrence in titles, headers, and body text.
 - **Popularity:** Measured independently of the query, using algorithms like PageRank.
@@ -87,7 +84,7 @@ The web interface provides user interaction with the search engine:
   - ReactJS
 
 
-## API "Spring Boot"
+## API "Spring Boot" 📖
  #### POST:
  - "http://localhost:8090/ranker/rank" -- for applying PageRank algorithm
     ##### Response
@@ -97,7 +94,7 @@ The web interface provides user interaction with the search engine:
     ##### Request Body
    > { "query": "al-Khwarizmi" } <br />
     ##### Response
-   > Ranked Urls with appropriate information. <br/>
+   > Ranked URLs with appropriate information. <br/>
 
 ## Database "MongoDB"
 ![image](https://github.com/ahmed-kamal2004/Aurora_SearchEngine/assets/98265644/5592cb3e-9f0b-47a2-9c3b-56fab912969c)
@@ -105,4 +102,12 @@ The web interface provides user interaction with the search engine:
 
 
 
+
+
+
+### Contributors
+
+## LICENSE
+
+[MIT](/LICENSE) © ahmed-kamal2004
 <img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=ahmed-kamal2004.Aurora_SearchEngine"/>
