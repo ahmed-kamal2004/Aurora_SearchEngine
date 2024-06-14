@@ -10,13 +10,13 @@ const SearchBar = (props) => {
         props.setSearch(props.search+1);
     }
     return (
-        <div className="bg-white w-[40%] border rounded-md border-[rgba(0,0,0,0.2)] flex flex-row items-center justify-between px-4 py-2 shadow-2xl">
+        <div className="bg-white w-[40%] relative border rounded-md border-[rgba(0,0,0,0.2)] flex flex-row items-center justify-between px-4 py-2 shadow-2xl">
             <button className="h-16 w-16 text-center"><IoIosSearch className="w-[50%] h-[100%] inline-block " onClick={() => {
                 handler();
                 if (props.searchQuery != "")
                     props.history(`/Results?q=${props.searchQuery}`)
             }} /></button>
-            <input ref={searchBarRef} type="text" name="SearchBar" id="SearchBar" value={props.searchQuery} className="active:border-none w-[75%] h-[100%] px-3 py-1 text-3xl outline-none shadow-md" onChange={(e) => {
+            <input ref={searchBarRef} placeholder="Search anything ..." type="text" name="SearchBar" id="SearchBar" value={props.searchQuery} className="active:border-none w-[75%] h-[100%] px-3 py-1 text-3xl outline-none shadow-md" onChange={(e) => {
                 props.setSearchQuery(e.target.value)
             }} />
             <div className="flex justify-around w-[10%]">

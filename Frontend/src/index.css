@@ -1,56 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root {
-    --color-1: chartreuse;
-    --color-2: magenta;
-    --color-3: cyan;
-    --color-4:#f00 ;
-  
-    --aura-size: 200%;
-    --aura-speed: 15s;
-  
-    --aura-1: var(--color-1);
-    --aura-2: var(--color-2);
-    --aura-3: var(--color-3);
-    --aura-4: var(--color-4);
-  }
-  
-  body {
-    background: #c5c50a;
-    text-align: start;
-    /* text-shadow: 0 0 1ch var(--color-3), 0 0 4ch var(--color-2); */
-    animation: aura var(--aura-speed) linear infinite;
-    background-size: var(--aura-size) var(--aura-size);
-    background-image: radial-gradient(transparent 0, transparent 20%),
-      radial-gradient(at 62% 9%, var(--aura-1) 0px, transparent 50%),
-      radial-gradient(at 69% 60%, var(--aura-2) 0px, transparent 50%),
-      radial-gradient(at 24% 89%, var(--aura-3) 0px, transparent 50%),
-      radial-gradient(at 51% 77%, var(--aura-4) 0px, transparent 50%),
-      radial-gradient(at 78% 92%, var(--aura-1) 0px, transparent 50%);
-  }
-  
-  .wrapper {
-    padding: 5em;
-  }
-  h1 {
-    font-size: 10rem;
-    font-weight: lighter;
-    line-height: 1;
-    margin: 0;
-  }
-  
-  @keyframes aura {
-    0% {
-      background-position: center, 50% 50%, 30% 100%, 100% 10%, 23% 23%, 0% 80%;
-    }
-    33.333% {
-      background-position: center, 10% 75%, 40% 80%, 60% 20%, 43% 23%, 16% 30%;
-    }
-    66.666% {
-      background-position: center, 25% 35%, 80% 50%, 10% 10%, 66% 5%, 30% 0%;
-    }
-    100% {
-      background-position: center, 50% 50%, 30% 100%, 100% 10%, 23% 23%, 0% 80%;
-    }
-  }
+/* src/App.css */
+@keyframes typing {
+  0% { width: 0; }
+  50% { width: 22%; }
+  100%{ width: 43%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: rgb(214, 202, 202); }
+}
+
+.typing-effect {
+  overflow: hidden;
+  border-right: .15em solid rgb(214, 202, 202);
+  white-space: nowrap;
+  animation: typing 4.5s steps(40, end) infinite, blink-caret .75s step-end  infinite;
+}
+.wheel {
+  width: 200px;
+  height: 200px;
+  border: 10px solid #FFD700;
+  border-radius: 50%;
+  position: relative;
+  animation: spin 5s linear infinite;
+}
+
+.wheel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: #FFD700;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.segment {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
