@@ -1,7 +1,7 @@
 # Aurora
 ### Intro
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com/?lines=Aurora+:+hello+world&font=Dancing_Script%70Code&color=%247E3DCE&size=20&center=true&width=500&height=100&duration=4000&pause=1&theme=dark" alt="Aurora">
+  <img src="https://readme-typing-svg.demolab.com/?lines=Aurora+:+hello+world+Aurora+is+here&font=Dancing_Script%70Code&color=%247E3DCE&size=20&center=true&width=500&height=100&duration=4000&pause=1&theme=dark" alt="Aurora">
 </p>
 
 ## New Search Engine Coming to the World
@@ -106,7 +106,9 @@ The web interface provides user interaction with the search engine:
 
 
 ## Contributors
-
+<a href="https://github.com/ahmed-kamal2004/Aurora_SearchEngine/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ahmed-kamal2004/Aurora_SearchEngine" />
+</a>
 
 ## LICENSE
 
