@@ -102,4 +102,7 @@ The web interface provides user interaction with the search engine:
 ## Database "MongoDB"
 ![image](https://github.com/ahmed-kamal2004/Aurora_SearchEngine/assets/98265644/5592cb3e-9f0b-47a2-9c3b-56fab912969c)
 
+
+
+
 <img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=ahmed-kamal2004.Aurora_SearchEngine"/>
